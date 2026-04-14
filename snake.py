@@ -4,20 +4,20 @@ import time
 GPIO.setmode(GPIO.BCM)
 
 # distance sensor
-TRIG = 26
-ECHO = 21
+TRIG = 5 
+ECHO = 3 
 
 GPIO.setup(TRIG, GPIO.OUT)
 GPIO.setup(ECHO, GPIO.IN)
 
-# motor pins (fix later)
+# motor pins IN, IN, EN
 motors = [
-    (5, 6, 12),
-    (13, 19, 18),
-    (16, 20, 25),
-    (22, 23, 24),
-    (8, 7, 3),
-    (9, 10, 11)
+    (23, 24, 18), # motor 1
+    (25, 8, 7), # motor 2
+    (16, 20, 12), # motor 3
+    (21, 26, 19), # motor 4
+    (6, 5, 13), # motor 5
+    (9, 10, 11) # motor 6
 ]
 
 pwm_list = []
@@ -37,7 +37,7 @@ for IN1, IN2, EN in motors:
 # distance measurement
 def get_distance():
     GPIO.output(TRIG, False)
-    time.sleep(0.002)
+    time.sleep(0.05)
 
     GPIO.output(TRIG, True)
     time.sleep(0.00001)
@@ -102,6 +102,23 @@ def get_velocity(prev_dist, prev_time):
     velocity = (prev_dist - curr_dist) / (curr_time - prev_time)
 
     return velocity, curr_dist, curr_time
+
+
+#Print the distance and velocity for testing purposes
+try:
+    while True:
+        print(f"Distance: {get_distance()} cm")
+        print(f"Velocity: {get_velocity(0, 0)[0]} cm/s")
+        time.sleep(0.5)
+
+except KeyboardInterrupt:
+    GPIO.cleanup()
+
+#going to make sure velocity speed is working without slithering first
+#then add slithering in and see if it can chase the target effectively
+
+move_forward() #test the wheels
+
 
 # main
 try:

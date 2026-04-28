@@ -115,7 +115,7 @@ try:
             print("Chasing at speed: ", speed, " cm/s")
 
             # Chase
-            move_forward()
+            move_forward(speed)
             time.sleep(5)
             stop_all()
             time.sleep(1)

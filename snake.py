@@ -4,15 +4,15 @@ import time
 GPIO.setmode(GPIO.BCM)
 
 # distance sensor
-TRIG = 5 
-ECHO = 3 
+TRIG = 3
+ECHO = 2 
 
 GPIO.setup(TRIG, GPIO.OUT)
 GPIO.setup(ECHO, GPIO.IN)
 
 # motor pins IN, IN, EN
 motors = [
-    (23, 24, 18), # motor 1
+    (24, 23, 18), # motor 1
     (25, 8, 7), # motor 2
     (16, 20, 12), # motor 3
     (21, 26, 19), # motor 4
@@ -23,8 +23,8 @@ motors = [
 pwm_list = []
 
 # setup motors
-# IN1 = HIGH, IN2 = LOW → forward
-# IN1 = LOW, IN2 = HIGH → backward
+# IN1 = HIGH, IN2 = LOW = forward
+# IN1 = LOW, IN2 = HIGH = backward
 for IN1, IN2, EN in motors:
     GPIO.setup(IN1, GPIO.OUT)
     GPIO.setup(IN2, GPIO.OUT)
@@ -86,14 +86,6 @@ def move_backward(speed=0.6):
     for i in range(6):
         set_motor(i, -speed)
 
-# slither (idk if this would work LMFAO)
-def slither_forward(base_speed=0.6, cycles=3, delay=0.08):
-    for _ in range(cycles):
-        for i in range(6):
-            offset = 0.15 * (i % 2)  # Slight lateral bias per motor
-            set_motor(i, base_speed + offset if i % 2 == 0 else base_speed - offset)
-            time.sleep(delay)
-
 # velocity calculation
 def get_velocity(prev_dist, prev_time):
     curr_dist = get_distance()
@@ -104,54 +96,37 @@ def get_velocity(prev_dist, prev_time):
     return velocity, curr_dist, curr_time
 
 
-#Print the distance and velocity for testing purposes
-try:
-    while True:
-        print(f"Distance: {get_distance()} cm")
-        print(f"Velocity: {get_velocity(0, 0)[0]} cm/s")
-        time.sleep(0.5)
-
-except KeyboardInterrupt:
-    GPIO.cleanup()
-
-#going to make sure velocity speed is working without slithering first
-#then add slithering in and see if it can chase the target effectively
-
-move_forward() #test the wheels
-
-
 # main
 try:
     prev_dist = get_distance()
     prev_time = time.time()
+    print("Sensing...")
 
     while True:
-        dist = get_distance()
-        print("Distance:", dist, "cm")
+        # Calculate velocity
+        velocity, prev_dist, prev_time = get_velocity(prev_dist, prev_time)
 
-        # Detection threshold
-        if dist < 50:
-            print("Target detected!")
-
-            # Calculate velocity
-            velocity, prev_dist, prev_time = get_velocity(prev_dist, prev_time)
-            print("Velocity:", velocity)
-
+        #Something was detected, chasing
+        print("Velocity:", velocity, " cm/s")
+        if velocity >= 5:
             # Convert velocity to motor speed
-            speed = min(max(0.3, abs(velocity) + 0.2), 1.0)
+            speed = min(( 0.01 * abs(velocity)), 0.6)
 
-            print("Chasing at speed:", speed)
+            print("Chasing at speed: ", speed, " cm/s")
 
             # Chase
-            slither_forward(speed)
-            time.sleep(2)
+            move_forward()
+            time.sleep(5)
+            stop_all()
+            time.sleep(1)
 
             # Return
             print("Returning...")
             move_backward(speed)
-            time.sleep(2)
+            time.sleep(5)
 
             stop_all()
+            time.sleep(1)
 
         else:
             stop_all()
@@ -162,3 +137,4 @@ except KeyboardInterrupt:
     print("Stopping...")
     stop_all()
     GPIO.cleanup()
+    exit()

@@ -124,6 +124,7 @@ try:
             print("Returning...")
             move_backward(speed)
             time.sleep(5)
+            print("Returned")
 
             stop_all()
             time.sleep(1)

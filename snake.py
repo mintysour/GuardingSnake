@@ -108,9 +108,9 @@ try:
 
         #Something was detected, chasing
         print("Velocity:", velocity, " cm/s")
-        if velocity >= 5:
+        if velocity >= 5 or velocity <= -5:
             # Convert velocity to motor speed
-            speed = min(( 0.01 * abs(velocity)), 0.6)
+            speed = min(max(( 0.01 * abs(velocity)), 0.2), 0.6)
 
             print("Chasing at speed: ", speed, " cm/s")
 
